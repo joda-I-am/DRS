@@ -59,8 +59,8 @@
 					"status": "mined",
 					"transactions": [
 						{
-							"contractId": "Rating",
-							"functionId": "Rating",
+							"contractId": "Reputation",
+							"functionId": "Reputation",
 							"gas": {
 								"value": "250000"
 							},
@@ -71,7 +71,7 @@
 							},
 							"isContractCreation": true,
 							"isFunctionCall": true,
-							"label": "Rating.Rating()",
+							"label": "Reputation.Reputation()",
 							"parameters": {
 								"v": 12
 							},
