@@ -1,0 +1,55 @@
+<!doctype>
+<html>
+	<head>
+	<script type='text/javascript'>
+
+	web3.eth.defaultAccount = web3.eth.accounts[0];
+	var currUser = web3.eth.defaultAccount;
+	
+		
+	function getReputation() {
+        var user = document.getElementById("users").value;
+        var res = contracts["Reputation"].contract.reputation(user);
+        document.getElementById("queryres").innerText = res;
+    }
+
+    function setReputation() {
+        var user = document.getElementById("usersMod").value;
+        var changeAmount = parseInt(document.getElementById("changeAmount").value);
+        var res = contracts["Reputation"].contract.changeReputation(currUser, user, changeAmount);
+    }
+		
+	function setup() {
+		for (var i=0; i < web3.eth.accounts.length; i++) {
+			console.log(web3.eth.accounts[i]);
+			var el = document.createElement("option");
+			el.textContent = web3.eth.accounts[i];
+			el.val = web3.eth.accounts[i];
+			document.getElementById("users").appendChild(el);
+			// Need to repeat unfortunately
+			var el2 = document.createElement("option");
+			el2.textContent = web3.eth.accounts[i];
+			el2.val = web3.eth.accounts[i];
+			document.getElementById("usersMod").appendChild(el2);
+		}
+	}
+    </script>
+    </head>
+    <body bgcolor="#E6E6FA" onload="setup()">
+        <h1>Reputations</h1>
+        <div>
+            Modify:
+            <select id="usersMod">
+			</select>
+            <input type="number" id="changeAmount">
+            <button onclick="setReputation()">Save</button>
+        </div>
+        <div>
+            Query:
+			<select id="users">
+			</select>
+			<button onclick="getReputation()">Get Reputation</button>
+            <div id="queryres"></div>
+        </div>
+    </body>
+</html>
