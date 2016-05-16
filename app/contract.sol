@@ -19,7 +19,7 @@ contract Reputation {
 	//int256 maxRep;=
     
     uint nextUserId;
-    mapping(uint256 => UserData) users;
+    mapping(uint256 => UserData) public users;
     
     struct UserData {
         address recipient;
@@ -54,10 +54,11 @@ contract Reputation {
         user.num_contributions++;
     }
 
-    // Check whether the funding goal of the campaign with id $(campaignId)
-    // has been reached and transfer the money.
+    // Check whether the threshold Rep of the User with id $(userId)
     function checkRepThreshold(uint256 userId) returns (bool reached)
     {
+		reached=false;
+		
         var user = users[userId];
 		//if the user has reached the maximum threshold
         if ( user.contributed >= user.maxRep) {
