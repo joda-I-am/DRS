@@ -97,8 +97,6 @@
 				"balance": {
 					"objectName": "",
 					"value": "1",
-					"unit": 10,
-					"value": "1",
 					"unit": 10
 				},
 				"name": "user1",
