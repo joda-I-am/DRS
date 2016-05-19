@@ -38,7 +38,7 @@ contract Reputation {
 
     // Create a new user.
     function create(address recipient, uint256 goal, uint256 deadline) returns (uint id) {
-        users[nextUserId] = UserData(recipient, 0, goal, deadline, 0);
+        users[nextUserId] = UserData(recipient, 1, goal, deadline, 0);
         nextUserId ++;
         id = nextUserId;
     }
@@ -52,6 +52,9 @@ contract Reputation {
         user.contributions[user.num_contributions] =
                       RepContribution(msg.sender, msg.value, now);
         user.num_contributions++;
+		//if (amount % 1 ether != 0  ) {
+    	//return;
+		//}
     }
 
     // Check whether the threshold Rep of the User with id $(userId)

@@ -9,14 +9,15 @@
 		
 	function getReputation() {
         var user = document.getElementById("users").value;
-        var res = contracts["Reputation"].contract.getRepAmount(user);
+        //var res = contracts["Reputation"].contract.getRepAmount(user);
+		var res = contracts["Reputation"].contract.users(user)[1];
         document.getElementById("queryres").innerText = res;
     }
 
     function setReputation() {
-        var user = document.getElementById("usersMod").value;
-        var changeAmount = parseInt(document.getElementById("changeAmount").value);
-        var res = contracts["Reputation"].contract.changeReputation(currUser, user, changeAmount);
+		var user = document.getElementById("users").value;
+        //var changeAmount = parseInt(document.getElementById("changeAmount").value);
+        var res = contracts["Reputation"].contract.contribute(user,{value: web3.toWei(12, 'ether')});
     }
 		
 	function setup() {
