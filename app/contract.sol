@@ -1,22 +1,4 @@
 contract Reputation {
-	//function Reputation() {
-	//	//maxRep = 10;
-	//	reputation[msg.sender] = 10;
-	//}
-	//function changeReputation(address instigator, address target, int256 _value) returns(bool //successful){
-        // ratings[_key] will be 0 if it is not defined
-	//	if (target == instigator) {
-	//		return;
-	//	}
-	//	int256 currentSum = 0;
-	//	if (reputation[target] + reputation[instigator] < 0) {
-	//		reputation[target] = 0;
-	//	} else {
-	//		reputation[target] += reputation[instigator];
-	//	}
-    //}
-    //mapping (address => int256) public reputation;
-	//int256 maxRep;=
     
     uint nextUserId;
     mapping(uint256 => UserData) public users;
@@ -43,19 +25,45 @@ contract Reputation {
         id = nextUserId;
     }
 
-    // Contribute to the user with id $(userId).
+    // Contribute to the user reputation with id $(userId).
     function contribute(uint256 userId) {
         var user = users[userId];
-        //if (campaign.deadline == 0) // check for non-existing campaign
-        //    return;
         user.contributed += msg.value;
         user.contributions[user.num_contributions] =
                       RepContribution(msg.sender, msg.value, now);
         user.num_contributions++;
-		//if (amount % 1 ether != 0  ) {
-    	//return;
-		//}
     }
+	
+	    // Negate the user reputation with id $(userId).
+    function negate(uint256 userId) {
+        var user = users[userId];
+        user.contributed -= msg.value;
+        user.contributions[user.num_contributions] =
+                      RepContribution(msg.sender, -msg.value, now);
+        user.num_contributions++;
+    }
+	
+	//Reputation determination algorithm - very simple as is
+	function repModifier(uint256 userId, uint256 threshold) returns (uint256 rep) {
+		var user= users[userId];
+		if (user.contributed >= threshold){
+			rep = user.contributed / 10;
+		} else {
+			rep=1;
+		}
+		
+	}
+	
+	//Check that user is not giving reputation to themselves
+	function checkIntegrity(uint256 sender, uint256 reciever) returns (bool reached)
+	{
+		reached=true;
+		
+		if (sender == reciever) {
+			reached == false;
+		}
+		
+	}
 
     // Check whether the threshold Rep of the User with id $(userId)
     function checkRepThreshold(uint256 userId) returns (bool reached)
@@ -74,26 +82,7 @@ contract Reputation {
 		
 		
     }
-
-    // Check whether the deadline of the campaign with id $(campaignId) has
-    // passed. In that case, return the contributed money and delete the
-    // campaign.
-    //function checkExpired(uint campaignId) returns (bool expired)
-    //{
-    //    expired = false;
-    //    var campaign = campaigns[campaignId];
-    //    if (campaign.deadline > 0 && block.timestamp > campaign.deadline) {
-            // pay out the contributors
-    //        for (uint i = 0; i < campaign.num_contributors; i++) {
-    //            send(campaign.contributions[i].contributor,
-    //                 campaign.contributions[i].amount);
-    //            delete campaign.contributions[i];
-    //        }
-    //        delete campaign;
-    //        expired = true;
-    //    }
-    //}
-
+	
     // Return the amount contributed to the campaign with id $(campaignId) by
     // the sender of the transaction.
     function getRepAmount(uint userId) returns (uint amount)

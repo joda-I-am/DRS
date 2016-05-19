@@ -4,7 +4,7 @@
 	<script type='text/javascript'>
 
 	web3.eth.defaultAccount = web3.eth.accounts[0];
-	var currUser = web3.eth.defaultAccount;
+	//var currUser = web3.eth.defaultAccount;
 	
 		
 	function getReputation() {
@@ -15,11 +15,24 @@
     }
 
     function setReputation() {
-		var user = document.getElementById("users").value;
+		
+		var instigator = document.getElementById("users").value;
+		var user = document.getElementById("usersMod").value;
+		web3.eth.defaultAccount = web3.eth.accounts[instigator];
         //var changeAmount = parseInt(document.getElementById("changeAmount").value);
-        var res = contracts["Reputation"].contract.contribute(user,{value: web3.toWei(12, 'ether')});
+		//var repMod= contracts["Reputation"].contract.repModifier(user,10);
+        var res = contracts["Reputation"].contract.contribute(user,{value: web3.toWei(1, 'wei')});
     }
 		
+	    function negReputation() {
+		
+		var instigator = document.getElementById("users").value;
+		var user = document.getElementById("usersMod").value;
+		web3.eth.defaultAccount = web3.eth.accounts[instigator];
+        //var changeAmount = parseInt(document.getElementById("changeAmount").value);
+		//var repMod= contracts["Reputation"].contract.repModifier(user,10);
+        var res = contracts["Reputation"].contract.negate(user,{value: web3.toWei(1, 'wei')});
+    }
 	function setup() {
 		var x = document.getElementById("usersMod");
 		//var el = document.createElement("option");
@@ -51,7 +64,7 @@
             <select id="usersMod">
 			</select>
             <button onclick="setReputation()">Rep</button>
-			<button onclick="setReputation()">Neg</button>
+			<button onclick="negReputation()">Neg</button>
         </div>
         <div>
             From:
