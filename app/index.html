@@ -1,6 +1,9 @@
 <!doctype>
 <html>
 	<head>
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js">
+	<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
 	<script type='text/javascript'>
 
 	web3.eth.defaultAccount = web3.eth.accounts[0];
@@ -18,6 +21,10 @@
 		
 		var instigator = document.getElementById("users").value;
 		var user = document.getElementById("usersMod").value;
+		// Ensure cannot update own reputation
+		if (instigator == user) {
+			return;
+		}
 		web3.eth.defaultAccount = web3.eth.accounts[instigator];
         //var changeAmount = parseInt(document.getElementById("changeAmount").value);
 		//var repMod= contracts["Reputation"].contract.repModifier(user,10);
@@ -28,6 +35,10 @@
 		
 		var instigator = document.getElementById("users").value;
 		var user = document.getElementById("usersMod").value;
+		// Ensure cannot neg own reputation
+		if (instigator == user) {
+			return;
+		}
 		web3.eth.defaultAccount = web3.eth.accounts[instigator];
         //var changeAmount = parseInt(document.getElementById("changeAmount").value);
 		//var repMod= contracts["Reputation"].contract.repModifier(user,10);
@@ -38,7 +49,6 @@
 		//var el = document.createElement("option");
 		//var el2 = document.createElement("option");
 		for (var i=0; i < web3.eth.accounts.length; i++) {
-			console.log(web3.eth.accounts[i]);
 			contracts["Reputation"].contract.create(web3.eth.accounts[i],1500,0)
 			var option = document.createElement("option");
 			option.text = "User " + (i+1);
@@ -57,20 +67,27 @@
 	}
     </script>
     </head>
-    <body bgcolor="#E6E6FA" onload="setup()">
+    <body bgcolor="#E6E6FA" onload="setup()" style="width:70%; margin:auto;">
         <h1>Reputations</h1>
-        <div>
+        <div style="padding-top:20px;">
             Modify:
-            <select id="usersMod">
+            <select id="usersMod" class="form-control">
 			</select>
-            <button onclick="setReputation()">Rep</button>
-			<button onclick="negReputation()">Neg</button>
+			<div style="padding:5px;">
+			    <a style="padding:5px;" class="btn btn-success" onclick="setReputation()">
+				    Rep  <i class="fa fa-hand-o-up" aria-hidden="true"></i></a>
+			    <a style="padding:5px;" class="btn btn-danger" onclick="negReputation()">
+				    Neg  <i class="fa fa-hand-o-down" aria-hidden="true"></i></a>
+			</div>
         </div>
-        <div>
+        <div style="padding-top:20px;">
             From:
-			<select id="users">
+			<select id="users" class="form-control">
 			</select>
-			<button onclick="getReputation()">Get Reputation</button>
+			<div style="padding:5px;">
+			    <a class="btn btn-primary" onclick="getReputation()">
+				    Get Reputation  <i class="fa fa-money" aria-hidden="true"></i></a>
+			</div>
             <div id="queryres"></div>
         </div>
     </body>
