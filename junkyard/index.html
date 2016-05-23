@@ -65,6 +65,10 @@ function listJunk() {
 					contracts['Junkyard'].contract.buy(i, {
 						value : web3.toWei(price, "ether")
 					}, function() {
+						// Want to sign the transaction?
+						
+						
+						// Refresh
 						listJunk(); // Update the junk list
 					});
 				}
