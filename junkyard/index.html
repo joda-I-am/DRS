@@ -1,7 +1,10 @@
 <!doctype>
 <html>
 <head>
-<script type='text/javascript'>
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js">
+	<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+	<script type='text/javascript'>
 
 web3.eth.defaultAccount = web3.eth.accounts[0];
 	
@@ -27,6 +30,29 @@ function createJunk() {
 	});
 }
 	
+function calculateRep() {
+	var reputation = {};
+	
+	var count = parseInt(contracts['Junkyard'].contract.jid());
+	for (var i = 0; i < count; i++) {
+		var ticket = contracts['Reputation'].contract.services(contracts['Junkyard'].address, i);
+		var provider = ticket[0];
+		var consumer = ticket[1];
+		var signed = ticket[2];
+		
+		var rep = reputation[provider];
+		if (typeof rep === 'undefined') {
+			rep = 0;
+		}
+		if (signed) {
+			rep += 1
+		}
+		reputation[provider] = rep;
+	}
+	return reputation;
+}		
+	
+		
 function listJunk() {
 	var buyUser = document.getElementById("buyUser").value;
 	var buyInfo = document.getElementById("buyInfo");
@@ -34,45 +60,81 @@ function listJunk() {
 	sale.innerHTML = "";
 	buyInfo.innerHTML = "Balance: " + web3.fromWei(web3.eth.getBalance(buyUser)) + " ether";
 	
+	// Calculate reputation
+	var rep = calculateRep();
+	
+	// List contracts
 	var count = parseInt(contracts['Junkyard'].contract.jid());
 	for (var i = 0; i < count; i++) {
 		var junk = contracts['Junkyard'].contract.yard(i);
 		
 		// List the item
-		var id = junk[0];
-		var desc = junk[1];
-		var price = junk[2];
-		var sold = junk[3];
+		var jid = junk[0];
+		var id = junk[1];
+		var desc = junk[2];
+		var price = junk[3];
+		var sold = junk[4];
 	
 		// Create a row
 		var uname = "User " + (web3.eth.accounts.indexOf(id) + 1);
+		var urepu = rep[id] || 0;
 		var row = document.createElement("tr");
 		var c1 = document.createElement("td");
 		var c2 = document.createElement("td");
-		var buy = document.createElement("button");
 		
 		if (sold) {
 			c1.innerHTML = uname + " owns <i>" + desc + "</i>";
-		} else {
-			c1.innerHTML = uname + " is selling <i>" + desc + "</i>";
-			buy.innerHTML = "Buy ("+price+" ether)"
-			c2.appendChild(buy);
-
-			// Functions
-			buy.onclick = function(buyUser, desc, id, i, price) { return function() {
-					web3.eth.defaultAccount = buyUser;
-					console.log("Buying " + desc + " (id="+i+") from " + id);
-					contracts['Junkyard'].contract.buy(i, {
-						value : web3.toWei(price, "ether")
-					}, function() {
-						// Want to sign the transaction?
-						
-						
-						// Refresh
-						listJunk(); // Update the junk list
-					});
+			
+			// Can we sign this transaction?
+			if (id == buyUser) {
+				var ticket = contracts['Reputation'].contract.services(contracts['Junkyard'].address, jid);
+				var provider = ticket[0];
+				var consumer = ticket[1];
+				var signed = ticket[2];
+				if (!signed) {
+					var good = document.createElement("button");
+					good.innerHTML = "<span class=\"glyphicon glyphicon-thumbs-up\" aria-hidden=\"true\"></span>"
+					good.className = "btn btn-success";
+					c2.appendChild(good);
+					
+					/*
+					var bad = document.createElement("button");
+					bad.innerHTML = "<span class=\"glyphicon glyphicon-thumbs-down\" aria-hidden=\"true\"></span>"
+					bad.className = "btn btn-danger";
+					c2.appendChild(bad);
+					*/
+					
+					// Functionality
+					good.onclick = function(buyUser, jid) { 
+						return function() {
+							web3.eth.defaultAccount = buyUser;
+							contracts['Reputation'].contract.signTicket(contracts['Junkyard'].address, jid, function() {
+								listJunk();
+							});
+						}
+					}(buyUser, jid);
 				}
-			}(buyUser, desc, id, i, price)
+			}
+		} else {
+			c1.innerHTML = uname + " (" + urepu + ") is selling <i>" + desc + "</i>";
+			if (id != buyUser) {
+				var buy = document.createElement("button");
+				buy.innerHTML = "Buy ("+price+" ether)"
+				buy.className = "btn btn-success";
+				c2.appendChild(buy);
+
+				// Functions
+				buy.onclick = function(buyUser, desc, id, i, price) { return function() {
+						web3.eth.defaultAccount = buyUser;
+						console.log("Buying " + desc + " (id="+i+") from " + id);
+						contracts['Junkyard'].contract.buy(i, {
+							value : web3.toWei(price, "ether")
+						}, function() {
+							listJunk();
+						});
+					}
+				}(buyUser, desc, id, i, price)
+			}
 		}
 		
 		// Assemble
@@ -98,20 +160,25 @@ function setup() {
 	
 </script>
 </head>
-<body bgcolor='#E6E6FA' onload="setup()">
-	<h3>Junkyard</h3>
-<div>
+<body bgcolor='#E6E6FA' onload="setup()" style="width:70%; margin:auto;">
+	<h3>Junkyard</h3><br/>
+	<div class="panel panel-default">
+	<div class="panel-body">
 	<h4>Sell Junk  as <select id="sellUser"></select></h4>
 	Description: <input type='text' id='description' value="Generic junk">
 	Price: <input type='number' id='price' value="50">
 	<button onclick='createJunk()'>List</button>
-</div>
-	<hr/>
-<div>
+	</div>
+	</div>
+	<div class="panel panel-default">
+	<div class="panel-body">
 	<h4>Buy Junk as <select id="buyUser" onchange='listJunk()'></select></h4>
 	<p id="buyInfo"></p>
-	<table id="forsale">	
+	<table class="table table-striped">	
+		<tbody id="forsale">
+		</tbody>
 	</table>
+		</div>
 	<!--
 Store:
 	<input type='number' id='key'>

@@ -21,6 +21,7 @@ contract Junkyard {
 	
 	// Junk is an abstract representation of an item
 	struct Junk {
+		uint256 jid;
 		address owner;
 		string description;
 		uint256 price;
@@ -28,7 +29,7 @@ contract Junkyard {
 	}
 
 	function createJunk(string description, uint256 price) {
-		yard[jid] = Junk(msg.sender, description, price, false);
+		yard[jid] = Junk(jid, msg.sender, description, price, false);
 		jid++;
 	}
 	
