@@ -1,0 +1,123 @@
+<!doctype>
+<html>
+<head>
+<script type='text/javascript'>
+
+web3.eth.defaultAccount = web3.eth.accounts[0];
+	
+function get() {
+	var param = document.getElementById('query').value;
+	var res = contracts['Sample'].contract.get();
+	document.getElementById('queryres').innerText = res;
+}
+
+function set() {
+	var key = document.getElementById('key').value;
+	var res = contracts['Sample'].contract.set(key);
+}
+
+function createJunk() {
+	var sellUser = document.getElementById("sellUser").value;
+	var description = document.getElementById('description').value;
+	var price = document.getElementById('price').value;
+	
+	web3.eth.defaultAccount = sellUser;
+	var junk = contracts['Junkyard'].contract.createJunk(description, price, function() {
+		listJunk();
+	});
+}
+	
+function listJunk() {
+	var buyUser = document.getElementById("buyUser").value;
+	var buyInfo = document.getElementById("buyInfo");
+	var sale = document.getElementById("forsale");
+	sale.innerHTML = "";
+	buyInfo.innerHTML = "Balance: " + web3.fromWei(web3.eth.getBalance(buyUser)) + " ether";
+	
+	var count = parseInt(contracts['Junkyard'].contract.jid());
+	for (var i = 0; i < count; i++) {
+		var junk = contracts['Junkyard'].contract.yard(i);
+		
+		// List the item
+		var id = junk[0];
+		var desc = junk[1];
+		var price = junk[2];
+		var sold = junk[3];
+	
+		// Create a row
+		var uname = "User " + (web3.eth.accounts.indexOf(id) + 1);
+		var row = document.createElement("tr");
+		var c1 = document.createElement("td");
+		var c2 = document.createElement("td");
+		var buy = document.createElement("button");
+		
+		if (sold) {
+			c1.innerHTML = uname + " owns <i>" + desc + "</i>";
+		} else {
+			c1.innerHTML = uname + " is selling <i>" + desc + "</i>";
+			buy.innerHTML = "Buy ("+price+" ether)"
+			c2.appendChild(buy);
+
+			// Functions
+			buy.onclick = function(buyUser, desc, id, i, price) { return function() {
+					web3.eth.defaultAccount = buyUser;
+					console.log("Buying " + desc + " (id="+i+") from " + id);
+					contracts['Junkyard'].contract.buy(i, {
+						value : web3.toWei(price, "ether")
+					}, function() {
+						listJunk(); // Update the junk list
+					});
+				}
+			}(buyUser, desc, id, i, price)
+		}
+		
+		// Assemble
+		row.appendChild(c1);
+		row.appendChild(c2);
+		sale.appendChild(row);
+	}
+}
+
+	
+function setup() {
+	var sellUser = document.getElementById("sellUser");
+	var buyUser = document.getElementById("buyUser");
+	for (var i = 0; i < web3.eth.accounts.length; i++) {
+		var user = document.createElement("option");
+		user.text = "User " + (i + 1);
+		user.value = web3.eth.accounts[i];
+		sellUser.appendChild(user);
+		buyUser.appendChild(user.cloneNode(true));
+	}
+	listJunk();
+}
+	
+</script>
+</head>
+<body bgcolor='#E6E6FA' onload="setup()">
+	<h3>Junkyard</h3>
+<div>
+	<h4>Sell Junk  as <select id="sellUser"></select></h4>
+	Description: <input type='text' id='description' value="Generic junk">
+	Price: <input type='number' id='price' value="50">
+	<button onclick='createJunk()'>List</button>
+</div>
+	<hr/>
+<div>
+	<h4>Buy Junk as <select id="buyUser" onchange='listJunk()'></select></h4>
+	<p id="buyInfo"></p>
+	<table id="forsale">	
+	</table>
+	<!--
+Store:
+	<input type='number' id='key'>
+	<button onclick='set()'>Save</button>
+</div>
+<div>
+Query:
+	<input value='get' type='button' id='query' onclick='get()' />
+	<div id='queryres'></div>
+-->
+</div>
+</body>
+</html>
