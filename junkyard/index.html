@@ -62,15 +62,15 @@ function listJunk() {
 			buy.onclick = function(buyUser, desc, id, i, price) { return function() {
 					web3.eth.defaultAccount = buyUser;
 					console.log("Buying " + desc + " (id="+i+") from " + id);
-					var token = contracts['Junkyard'].contract.buy(i, {
+					contracts['Junkyard'].contract.buy(i, {
 						value : web3.toWei(price, "ether")
-					}, function(a,b,c) {
-						console.log("A: " + a);
-						console.log("B: " + b);
-						console.log("C: " + c);
-						//listJunk(); // Update the junk list
+					}, function() {
+						// Want to sign the transaction?
+						
+						
+						// Refresh
+						listJunk(); // Update the junk list
 					});
-					console.log("TOKEN: " + token);
 				}
 			}(buyUser, desc, id, i, price)
 		}

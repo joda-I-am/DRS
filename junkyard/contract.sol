@@ -10,26 +10,19 @@ by Samuel Colbran
 contract Reputation {
 	uint256 public tid = 0;
 	mapping (address => mapping (uint256 => Ticket)) public services;
-	
-	function Reputation() {
-		
-	}
-	
+
 	struct Ticket {
 		address provider;
 		address consumer;
-		uint256 tid; // Transaction id (service should know what it means)
 		bool signed; // A flag to see whether the consumer has signed this ticket
 	}
 	
 	// Creates a new unsigned ticket
-	function createTicket(address provider, address consumer, uint256 tid) returns (uint256 token) {
+	function createTicket(address provider, address consumer, uint256 tid) {
 		//if (msg.value < 1) throw; // Tickets cost 1 ether [to pay for future gas costs]
 		
 		// Create the ticket
-		services[msg.sender][tid] = Ticket(provider, consumer, tid, false);
-		tid++;
-		return tid - 1;
+		services[msg.sender][tid] = Ticket(provider, consumer, false);
 	}
 	
 	// Signs a ticket
@@ -40,8 +33,7 @@ contract Reputation {
 		ticket.signed = true;
 
 		// Refund the consumer
-	}
-	
+	}	
 }
 
 contract Junkyard {
@@ -62,13 +54,12 @@ contract Junkyard {
 		bool sold;
 	}
 
-	function createJunk(string description, uint256 price) returns (uint256) {
+	function createJunk(string description, uint256 price) {
 		yard[jid] = Junk(msg.sender, description, price, false);
 		jid++;
-		return jid - 1;
 	}
 	
-	function buy(uint256 id) returns (uint256 token) {
+	function buy(uint256 id){
 		Junk junk = yard[id];
 		if (junk.sold == true) throw; 			// You can't buy this item!
 		if (msg.sender == junk.owner) throw; 	// You can't buy your own item!
@@ -85,7 +76,7 @@ contract Junkyard {
 		junk.owner.send(payment);
 		
 		// generate reputation token using the transaction fee to cover any gas costs
-		token = reputation.createTicket(junk.owner, msg.sender, id);
+		reputation.createTicket(junk.owner, msg.sender, id);
 		
 		// transfer ownership
 		junk.owner = msg.sender;
