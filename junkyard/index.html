@@ -39,13 +39,17 @@ function calculateRep() {
 		var provider = ticket[0];
 		var consumer = ticket[1];
 		var signed = ticket[2];
+		var value = ticket[3];
 		
 		var rep = reputation[provider];
 		if (typeof rep === 'undefined') {
 			rep = 0;
 		}
 		if (signed) {
-			rep += 1
+			rep += parseInt(value)
+			if (rep < 0) {
+				rep = 0;
+			}
 		}
 		reputation[provider] = rep;
 	}
@@ -97,18 +101,25 @@ function listJunk() {
 					good.className = "btn btn-success";
 					c2.appendChild(good);
 					
-					/*
 					var bad = document.createElement("button");
 					bad.innerHTML = "<span class=\"glyphicon glyphicon-thumbs-down\" aria-hidden=\"true\"></span>"
 					bad.className = "btn btn-danger";
 					c2.appendChild(bad);
-					*/
 					
 					// Functionality
 					good.onclick = function(buyUser, jid) { 
 						return function() {
 							web3.eth.defaultAccount = buyUser;
-							contracts['Reputation'].contract.signTicket(contracts['Junkyard'].address, jid, function() {
+							contracts['Reputation'].contract.signTicket(contracts['Junkyard'].address, jid, 1, "", function() {
+								listJunk();
+							});
+						}
+					}(buyUser, jid);
+					
+					bad.onclick = function(buyUser, jid) { 
+						return function() {
+							web3.eth.defaultAccount = buyUser;
+							contracts['Reputation'].contract.signTicket(contracts['Junkyard'].address, jid, -1, "", function() {
 								listJunk();
 							});
 						}
