@@ -1,0 +1,85 @@
+<!doctype>
+<html>
+<head>
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js">
+	<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+	<script type='text/javascript'>
+web3.eth.defaultAccount = web3.eth.accounts[0];
+
+function mintCoin(){
+	var mintUser = document.getElementById("mintUser").value;
+	var amount = document.getElementById("amount").value;
+	web3.eth.defaultAccount = mintUser;
+	var coin = contracts['SimpleCoin'].contract.Coin()
+	contracts['SimpleCoin'].contract.mint(mintUser,amount);
+}
+		
+function sendCoin(){
+	var coinSender = document.getElementById("coinSender").value;
+	var senderId = document.getElementById("coinSender").text;
+	var coinReciever = document.getElementById("coinReciever").value;
+	var amount=document.getElementById("sendAmount").value;
+	web3.eth.defaultAccount = coinSender;
+	contracts['SimpleCoin'].contract.send(coinReciever,amount,senderId)
+}
+function showBalance(){
+	var coinInfo = document.getElementById("coinInfo");
+	var mintUser = document.getElementById("mintUser").value;
+	var coinAmount = contracts['SimpleCoin'].contract.queryBalance(mintUser) 
+	coinInfo.innerHTML = "Balance: " + coinAmount + " coins"
+	
+}		
+		
+function setup() {
+	var sellUser = document.getElementById("mintUser");
+	var buyUser = document.getElementById("coinSender");
+	var recieverUser = document.getElementById("coinReciever")
+	for (var i = 0; i < web3.eth.accounts.length; i++) {
+		var user = document.createElement("option");
+		user.text = "User " + (i + 1);
+		user.value = web3.eth.accounts[i];
+		sellUser.appendChild(user);
+		buyUser.appendChild(user.cloneNode(true));
+		recieverUser.appendChild(user.cloneNode(true));
+	}
+}
+	
+</script>
+</head>
+<body bgcolor='#E6E6FA' onload="setup()" style="width:70%; margin:auto;">
+	<h3>Simple Coin</h3><br/>
+	<div class="panel panel-default">
+	<div class="panel-body">
+	<h4>Mint coins as <select id="mintUser" onchange='showBalance()'></select></h4>
+	Amount: <input type='number' id='amount' value="1">
+	<button onclick='mintCoin()'>Mint</button>
+		<p id="coinInfo"></p>
+		<p id="etherInfo"></p>
+	</div>
+	</div>
+	<div class="panel panel-default">
+	<div class="panel-body">
+	<h4>Send coins as <select id="coinSender" onchange='sendCoin()'></select></h4>
+	Amount: <input type='number' id='sendAmount' value="1">
+		<h4>For service provided by: <select id="coinReciever" onchange='sendCoin()'></select></h4>
+	<button onclick='sendCoin()'>Send</button>
+		
+	<table class="table table-striped">	
+		<tbody id="forsale">
+		</tbody>
+	</table>
+		</div>
+	<!--
+Store:
+	<input type='number' id='key'>
+	<button onclick='set()'>Save</button>
+</div>
+<div>
+Query:
+	<input value='get' type='button' id='query' onclick='get()' />
+	<div id='queryres'></div>
+-->
+</div>
+</body>
+</html>
