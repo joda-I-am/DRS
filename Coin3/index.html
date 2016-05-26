@@ -1,0 +1,125 @@
+<!doctype>
+<html>
+<head>
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js">
+	<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+	<script type='text/javascript'>
+web3.eth.defaultAccount = web3.eth.accounts[0];
+
+function mintCoin(){
+	var mintUser = document.getElementById("mintUser").value;
+	var amount = document.getElementById("amount").value;
+	web3.eth.defaultAccount = mintUser;
+	var coin = contracts['SimpleCoin'].contract.Coin()
+	contracts['SimpleCoin'].contract.mint(mintUser,amount);
+	showBalance();
+}
+		
+function sendCoin(){
+	var coinSender = document.getElementById("coinSender").value;
+	var senderId = document.getElementById("coinSender").text;
+	var coinReceiver = document.getElementById("coinReceiver").value;
+	// Check on the client side if coinReceiver = CoinSender
+	if (coinSender == coinReceiver) return;
+	var amount=document.getElementById("sendAmount").value;
+	var currentAmount = contracts['SimpleCoin'].contract.queryBalance(coinSender);
+	if (currentAmount < amount) return;
+	web3.eth.defaultAccount = coinSender;
+	contracts['SimpleCoin'].contract.send(coinReceiver,amount,senderId);
+	var serviceId = contracts['SimpleCoin'].contract.serviceId;
+	// Subtract 1 to get the previous service id, since it is incremented in the contract
+	setupTicket(serviceId-1);
+}
+		
+function setupTicket(sid) {
+	var ticket = contracts['Reputation'].contract.services(contracts['SimpleCoin'].address, sid);
+	var serviceProvider = ticket[0];
+	var consumer = ticket[1];
+	var signed = ticket[2];
+	
+	if (signed) return;
+	var repDiv = document.getElementById("Reputation");
+	repDiv.innerHTML = "<h4>Reputation Token</h4>";
+	var good = document.createElement("button");
+	good.innerHTML = "<span class=\"glyphicon glyphicon-thumbs-up\" aria-hidden=\"true\"></span>";
+	good.className = "btn btn-success";
+	repDiv.appendChild(good);
+	
+	var bad = document.createElement("button");
+	bad.innerHTML = "<span class=\"glyphicon glyphicon-thumbs-down\" aria-hidden=\"true\"></span>";
+	bad.className = "btn btn-danger";
+	repDiv.appendChild(bad);
+	
+	good.onclick = function(consumer, sid) {
+		return function() {
+			web3.eth.defaultAccount = consumer;
+			contracts['Reputation'].contract.signTicket(contracts['SimpleCoin'].address, sid, 1, "", function(){
+				finishTicket();
+			});
+		}
+	}(consumer, sid);
+	
+	bad.onclick = function(consumer, sid) {
+		return function() {
+			web3.eth.defaultAccount = consumer;
+			contracts['Reputation'].contract.signTicket(contracts['SimpleCoin'].address, sid, -1, "", function(){
+				finishTicket();
+			});
+		}
+	}(consumer, sid);
+	
+}
+		
+function finishTicket() {
+	var repDiv = document.getElementById("Reputation");
+	repDiv.innerHTML = "<h4>Reputation Token</h4>Thank you for signing";
+}
+		
+function showBalance(){
+	var coinInfo = document.getElementById("coinInfo");
+	var mintUser = document.getElementById("mintUser").value;
+	var coinAmount = contracts['SimpleCoin'].contract.queryBalance(mintUser);
+	coinInfo.innerHTML = "Balance: " + coinAmount + " coins";
+	
+}		
+		
+function setup() {
+	var sellUser = document.getElementById("mintUser");
+	var buyUser = document.getElementById("coinSender");
+	var receiverUser = document.getElementById("coinReceiver")
+	for (var i = 0; i < web3.eth.accounts.length; i++) {
+		var user = document.createElement("option");
+		user.text = "User " + (i + 1);
+		user.value = web3.eth.accounts[i];
+		sellUser.appendChild(user);
+		buyUser.appendChild(user.cloneNode(true));
+		receiverUser.appendChild(user.cloneNode(true));
+	}
+}
+	
+</script>
+</head>
+<body bgcolor='#E6E6FA' onload="setup()" style="width:70%; margin:auto;">
+	<h3>Simple Coin</h3><br/>
+	<div class="panel panel-default">
+	<div class="panel-body">
+	<h4>Mint coins as <select id="mintUser" onchange='showBalance()' class="form-control"></select></h4>
+	Amount: <input type='number' id='amount' value="1">
+	<button onclick='mintCoin()'>Mint</button>
+		<p id="coinInfo"></p>
+		<p id="etherInfo"></p>
+	</div>
+	</div>
+	<div class="panel panel-default">
+	<div class="panel-body">
+	<h4>Send coins as <select id="coinSender" class="form-control"></select></h4>
+	Amount: <input type='number' id='sendAmount' value="1">
+		<h4>For service provided by: <select id="coinReceiver" class="form-control"></select></h4>
+	<button onclick='sendCoin()'>Send</button>
+		
+		<div id="Reputation" class="panel-body"></div>
+	</div>
+</div>
+</body>
+</html>

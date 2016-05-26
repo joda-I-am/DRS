@@ -92,3 +92,32 @@ contract Reputation {
 
 
 }
+
+contract RepToken {
+	mapping(address => uint[]) public reputationHistory;
+	
+}
+
+contract CoinTransfer {
+	
+	
+	struct Coin {
+		address owner;
+		address recipient;
+		uint256 value;
+	}
+	
+	function createCoin(uint256 amount) {
+		// Create a new coin with no recipient
+		// Coin c = Coin(msg.sender, 0, amount);
+	}
+	
+	function acceptPayment(address ServiceProvider, uint256 amount) {
+		// Perform validation on client-side
+		// Transfer amount to Service Provider
+		ServiceProvider.send(amount);
+		
+	}
+	
+	
+}
